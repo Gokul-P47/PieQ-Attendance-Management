@@ -33,7 +33,7 @@ fun main() {
                 getEmployeeList(employeeManager)
             }
             5 -> {
-               checkIn(employeeManager)
+                checkIn(employeeManager)
             }
             6 -> {
                 checkOut(employeeManager)

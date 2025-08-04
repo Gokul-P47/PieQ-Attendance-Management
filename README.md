@@ -1,61 +1,67 @@
 # PieQ Attendance Management
-
+---
 ## Class Employee
-&nbsp;Contains employee data fields such as id, firstName, lastName, role, reportingTo. 
+&nbsp;Represents an employee with data fields such as id, firstName, lastName, role, reportingTo. 
 ## Methods
 ### Validate(): Boolean
-&nbsp;Validate the employee details such as check whether an employee name is valid or empty and return true/false based on the validation.
+&nbsp;Validates the employee details (e.g., checks if name is empty or invalid). Returns true if valid, else false.
 ### generateId()
-&nbsp;Generate employee id and assign it to the employee id field.
+&nbsp;Generates a unique employee ID and assigns it to the id field.
 ### getErrorMessage(): String
-&nbsp;Validate employee fields and return error message in string format such as "Invalid name" error.
+&nbsp;Returns a string describing validation errors, e.g., "Invalid name".
 ### update(): Boolean
-&nbsp;Validate the new values, update the employee data fields and return true if the updation is successful, otherwise return false.
+&nbsp;Updates employee fields after validating the new values. Returns true if successful, else false.
 ### toString(): String
-&nbsp;Format the employee data fields and return the formatted String.
+&nbsp;Returns a formatted string representation of the employee's data.
 
+---
 ## Class Attendance
-&nbsp;Contains employee data fields such as empId, checkInTime, checkOutTime, workingHours.
+&nbsp;Represents an employee's attendance details such as empId, checkInTime, checkOutTime, workingHours.
 ## Methods
 ### toString(): String
-&nbsp;Format the fields and return the formatted string
+&nbsp;Returns a formatted string representation of the attendance record.
 
+---
 ## Class EmployeeList
-&nbsp;Inherits the ArrayList class, set the object type as Employee and ovverride the add method of arrayList.
+&nbsp;Extends ArrayList<Employee> and overrides the add() method.
 ## Methods
 ### add(): Boolean
-&nbsp;Take employee object as input, add it to the list if its is valid and return true if the object is successfully added otherwise return false.
+&nbsp;Adds the employee object to the list if valid. Returns true on success, else false.
 
+---
 ## Class AttendanceList
-&nbsp;Inherits the ArrayList class, set the object type as Attendance and ovverride the add method of arrayList
+&nbsp;Extends ArrayList<Attendance> and overrides the add() method.
 ## Methods
 ### add(): Boolean
-&nbsp;Take attendance object as input, add it to the list if its is valid and return true if the object is successfully added otherwise return false.
+&nbsp;Adds the attendance object to the list if valid. Returns true on success, else false.
 
+---
 ## Class EmployeeManager
 &nbsp;Class that interact with the main function. Contains objects for EmployeeList and AttendanceList.
 ## Methods
 ### addEmployee(): String
-&nbsp;Get the employee object and add it to the list if the object is valid. Also return success or error message.
+&nbsp;Adds a new employee to the list after validation. Returns a success or error message.
 ### deleteEmployee(): Boolean
-&nbsp;Get the empId and remove the employee object from the list if the employee id exist.
+&nbsp;Removes an employee from the list by ID. Returns true if successful.
 ### updateEmployee(): String
-&nbsp;Update the employee data fields with new values if the new values are valid. Return success or error message as string.
+&nbsp;Updates employee data after validation. Returns a success or error message.
 ### getEmployeeList(): List
-&nbsp;Return the employee list
-### chckIn(): Boolean
-&nbsp;Add check-in entry to the attendance list if it is a valid check-in.
+&nbspReturns the list of all employees.
+### checkIn(): Boolean
+&nbsp;Adds a check-in entry for the employee if not already checked in that day.
 ### hasAlreadyCheckedIn(): Boolean
-&nbsp;Checks whether an employee already checked in that particular day or not.
+&nbsp;Checks if the employee has already checked in on the specified day.
 ### checkOut(): Boolean
-&nbsp;Update the check out time and working hours data fields if it is a valid check out.
-### isValidCheckOut(): Attendance
-&nbsp;Validate the check out conditions and returns attendance object if the check out is valid
+&nbsp;Adds check-out time and calculates working hours if the check-out is valid.
+### validateCheckOut(): Attendance
+&nbsp;Validates if check-out is allowed and returns the corresponding Attendance object.
 ### getIncompleteAttendance(): List
-&nbsp;Return the list of attendance where checked in but no checked out.
+&nbsp;Returns attendance records with check-in but no check-out.
 ### getTotalWorkingHrsBetween(): Map
-&nbsp;Compute the total working hours of each employees between two dates.
+&nbsp;Computes total working hours for each employee between two dates.
 
+---
 ## main()
-&nbsp;Display menu list, get inputs from the user, call the functions based on the user choice and display the output.
+&nbsp;Displays a menu, takes user input, performs operations using the manager methods, and handles error messages.
 
+---

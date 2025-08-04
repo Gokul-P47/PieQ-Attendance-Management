@@ -1,4 +1,5 @@
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -103,7 +104,7 @@ class EmployeeManager {
         attendance.checkOutDateTime=checkOutDateTime
         attendance.workingHrs=totHrs
         return "EmpId: $empId CheckInTime: ${attendance.checkInDateTime.format(formatter)} " +
-                "CheckOutTime: ${checkOutDateTime.format(formatter)} workingHrs: ${totHrs.toHours()}h ${totHrs.toMinutes()%60}m"
+                "CheckOutTime: ${checkOutDateTime.format(formatter)} workingHrs: ${totHrs.toHours()}h ${totHrs.toMinutesPart()}m"
     }
 
     fun validateCheckOut(empId: String, checkOutDateTime: LocalDateTime): Attendance? {
@@ -127,6 +128,26 @@ class EmployeeManager {
     fun getIncompleteAttendances(): List<Attendance> {
         return checkInList.filter { it.checkOutDateTime == null }
     }
+
+    fun getTotalWorkingHrsBetween(startDate: LocalDate, endDate: LocalDate): Map<String, Duration> {
+        //Filter attendances between the given dates
+        val filteredList = checkInList.filter {
+            it.checkOutDateTime != null &&
+                    it.checkInDateTime.toLocalDate() in startDate..endDate
+        }
+
+        //Create a map to store total duration per employee
+        val map = mutableMapOf<String, Duration>()
+
+        //Accumulate working hours per employee
+        for (attendance in filteredList) {
+            val empId = attendance.id
+            val duration = attendance.workingHrs
+            map[empId] = map.getOrDefault(empId, Duration.ZERO) + duration
+        }
+        return map
+    }
+
 
     fun getEmployee(empId: String): Employee? {   //Return Employee object
         return employeeList.find { it.id == empId }

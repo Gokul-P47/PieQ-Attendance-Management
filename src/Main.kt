@@ -1,6 +1,8 @@
 import java.time.DateTimeException
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 fun main() {
     val employeeManager= EmployeeManager()
@@ -12,9 +14,10 @@ fun main() {
         println("4.Get Employees List")
         println("5.Check In")
         println("6.Check Out")
-        println("7.Get Check-In List")
-        println("8.Get incomplete Attendances")
-        println("9.Exit")
+        println("7.Get Attendance List")
+        println("8.Get Incomplete Attendances")
+        println("9.Get Total Working Hours Between two Dates")
+        println("10.Exit")
         print("Choose an option: ")
         when (readln().toIntOrNull()) {
             1->{
@@ -27,14 +30,7 @@ fun main() {
                 updateEmployee(employeeManager)
             }
             4 -> {
-                println("----- Employee List -----")
-                val employeeList=employeeManager.getEmployeesList()
-                if (employeeList.isEmpty()){
-                    println("No Employees yet added")
-                }
-                else{
-                    employeeList.forEach{ println(it)}
-                }
+                getEmployeeList(employeeManager)
             }
             5 -> {
                checkIn(employeeManager)
@@ -43,26 +39,15 @@ fun main() {
                 checkOut(employeeManager)
             }
             7 -> {
-                println("----- Check-In List -----")
-                val checkInList=employeeManager.getAttendanceList()
-                if (checkInList.isEmpty()){
-                    println("No Check-ins yet")
-                }
-                else{
-                    checkInList.forEach{ println(it)}
-                }
+                getAttendanceList(employeeManager)
             }
             8->{
-                println("Incomplete attendances")
-                val incompleteAttendances=employeeManager.getIncompleteAttendances()
-                if(incompleteAttendances.isEmpty()){
-                    println("No incomplete attendances")
-                }
-                else{
-                    incompleteAttendances.forEach{println(it)}
-                }
+                getIncompleteAttendance(employeeManager)
             }
             9->{
+                getTotalWorkingHrsBetweenDate(employeeManager)
+            }
+            10->{
                 break
             }
             else -> println("Invalid option")
@@ -123,6 +108,17 @@ fun updateEmployee(employeeManager: EmployeeManager){
     }
 }
 
+fun getEmployeeList(employeeManager: EmployeeManager){
+    println("----- Employee List -----")
+    val employeeList=employeeManager.getEmployeesList()
+    if (employeeList.isEmpty()){
+        println("No Employees yet added")
+    }
+    else{
+        employeeList.forEach{ println(it)}
+    }
+}
+
 fun checkIn(employeeManager: EmployeeManager){
     print("Enter employee ID: ")
     val empId = readln()
@@ -162,6 +158,47 @@ fun checkOut(employeeManager: EmployeeManager){
     }
 }
 
+fun getAttendanceList(employeeManager: EmployeeManager){
+    println("----- Check-In List -----")
+    val checkInList=employeeManager.getAttendanceList()
+    if (checkInList.isEmpty()){
+        println("No Check-ins yet")
+    }
+    else{
+        checkInList.forEach{ println(it)}
+    }
+}
+
+fun getIncompleteAttendance(employeeManager: EmployeeManager){
+    println("Incomplete attendances")
+    val incompleteAttendances=employeeManager.getIncompleteAttendances()
+    if(incompleteAttendances.isEmpty()){
+        println("No incomplete attendances")
+    }
+    else{
+        incompleteAttendances.forEach{println(it)}
+    }
+}
+
+fun getTotalWorkingHrsBetweenDate(employeeManager: EmployeeManager){
+    print("Enter start date(dd-MM-yyyy): ")
+    val startDate = parseDate(readln().trim())
+    if(startDate==null){
+        println("Invalid start date")
+        return
+    }
+    print("Enter end date(dd-MM-yyyy): ")
+    val endDate = parseDate(readln().trim())
+    if(endDate==null){
+        println("Invalid end date")
+        return
+    }
+    val map=employeeManager.getTotalWorkingHrsBetween(startDate,endDate)
+    println("Employee working hours")
+    println("Employee Id | Working hours")
+    map.forEach { println("${it.key}   →   ${it.value.toHours()}h ${it.value.toMinutesPart()}m") }
+}
+
 fun getDateTimeFromUserOrNow(): LocalDateTime? {
     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
     print("Enter date and time (dd-MM-yyyy HH:mm) : ")
@@ -177,5 +214,14 @@ fun getDateTimeFromUserOrNow(): LocalDateTime? {
         } catch ( e:DateTimeException) {  //Invalid format
             null
         }
+    }
+}
+
+fun parseDate(input: String): LocalDate? {
+    val formatter= DateTimeFormatter.ofPattern("dd-MM-yyyy")
+    return try {
+        LocalDate.parse(input, formatter)
+    } catch (e: DateTimeParseException) {
+        null
     }
 }

@@ -1,8 +1,3 @@
-import java.time.DateTimeException
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 fun main() {
     val employeeManager= EmployeeManager()
@@ -67,15 +62,7 @@ fun addEmployee(employeeManager: EmployeeManager){
     println("Reporting to: ")
     val reportingTo=readln()
     val employee=Employee(empFirstName,empLastName,Role.from(empRole),Manager.from(reportingTo))
-    if(employee.validate()){
-        employeeManager.addEmployee(employee)
-        println(employee)
-        println("Employee added successfully!")
-    }
-    else{
-        println(employee.getErrorMessage())
-        println("Failed to add employee")
-    }
+    println(employeeManager.addEmployee(employee))
 }
 
 fun deleteEmployee(employeeManager: EmployeeManager){
@@ -123,19 +110,16 @@ fun checkIn(employeeManager: EmployeeManager){
     print("Enter employee ID: ")
     val empId = readln()
 
-    val inputDateTime = getDateTimeFromUserOrNow()
-    if (inputDateTime == null) {
-        println("Invalid dateTime")
-        return
-    }
+    print("Enter date and time (dd-MM-yyyy HH:mm) : ")
+    val inputDateTime = readln().trim()
 
-    val checkInStatus = employeeManager.checkIn(empId, inputDateTime)
-    if (checkInStatus) {
-        val employee: Employee?= employeeManager.getEmployee(empId)
-        val formatter= DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
-        println("Check-in Successful! Employee Id: $empId Name: ${employee?.firstName} ${employee?.lastName} DateTime: ${inputDateTime.format(formatter)}")
+
+    val checkInResult = employeeManager.checkIn(empId, inputDateTime)
+    if (checkInResult != null) {
+        println("Check-in successful")
+        println(checkInResult)
     } else {
-        println("Check-in Failed.") //Either user already checked-in or invalid user id
+        println("Check-in Failed.")  //Either user already checked-in or invalid user id
     }
 }
 
@@ -143,18 +127,15 @@ fun checkOut(employeeManager: EmployeeManager){
     print("Enter Employee ID: ")
     val empId = readln()
 
-    val inputDateTime = getDateTimeFromUserOrNow()
-    if (inputDateTime == null) {
-        println("Invalid dateTime")
-        return
-    }
+    print("Enter date and time (dd-MM-yyyy HH:mm) : ")
+    val inputDateTime = readln().trim()
 
     val checkOutResult = employeeManager.checkOut(empId, inputDateTime)
     if (checkOutResult != null) {
         println("Check out successful")
         println(checkOutResult)
     } else {
-        println("Check-out Failed.")
+        println("Check out Failed.")
     }
 }
 
@@ -181,47 +162,15 @@ fun getIncompleteAttendance(employeeManager: EmployeeManager){
 }
 
 fun getTotalWorkingHrsBetweenDate(employeeManager: EmployeeManager){
-    print("Enter start date(dd-MM-yyyy): ")
-    val startDate = parseDate(readln().trim())
-    if(startDate==null){
-        println("Invalid start date")
-        return
-    }
-    print("Enter end date(dd-MM-yyyy): ")
-    val endDate = parseDate(readln().trim())
-    if(endDate==null){
-        println("Invalid end date")
-        return
-    }
-    val map=employeeManager.getTotalWorkingHrsBetween(startDate,endDate)
-    println("Employee working hours")
-    println("Employee Id | Working hours")
-    map.forEach { println("${it.key}   →   ${it.value.toHours()}h ${it.value.toMinutesPart()}m") }
-}
+    print("Enter starting date(dd-MM-yyyy): ")
+    val startingDate=readln().trim()
+    print("Enter ending date(dd-MM-yyyy): ")
+    val endingDate=readln().trim()
 
-fun getDateTimeFromUserOrNow(): LocalDateTime? {
-    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
-    print("Enter date and time (dd-MM-yyyy HH:mm) : ")
-    val input = readln().trim()
-    return if (input.isEmpty()) {
-        LocalDateTime.now()
-    } else {
-        try {
-            val dateTime = LocalDateTime.parse(input, formatter)
-            if (dateTime.isAfter(LocalDateTime.now())) {  //Future date time
-                null
-            } else dateTime
-        } catch ( e:DateTimeException) {  //Invalid format
-            null
-        }
-    }
-}
-
-fun parseDate(input: String): LocalDate? {
-    val formatter= DateTimeFormatter.ofPattern("dd-MM-yyyy")
-    return try {
-        LocalDate.parse(input, formatter)
-    } catch (e: DateTimeParseException) {
-        null
+    val map=employeeManager.getTotalWorkingHrsBetween(startingDate,endingDate)
+    if(map!=null) {
+        println("Employee working hours")
+        println("Employee Id | Working hours")
+        map.forEach { println("${it.key}   →   ${it.value.toHours()}h ${it.value.toMinutesPart()}m") }
     }
 }

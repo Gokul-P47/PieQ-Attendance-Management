@@ -1,12 +1,16 @@
+import java.time.DateTimeException
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 
 class EmployeeManager {
-    val employeeList = EmployeeList() //To store employees
-    private val checkInList = AttendanceList()  //To store attendance records
+    companion object {
+        val employeeList = EmployeeList() //To store employees
+        private val checkInList = AttendanceList()  //To store attendance records
+    }
 
     init {
         addInitialEmployees()
@@ -28,19 +32,18 @@ class EmployeeManager {
 
     //Add new Employee
     fun addEmployee(employee: Employee) :String{
-        //Check whether first name and lastname are valid or not
+        //Validate the employee object and add it to the list if it is valid
         if(employee.validate()){
             employee.generateEmpId()
             employeeList.add(employee)
-            return "Employee Added SuccessFully! empId:${employee.id} empName:${employee.firstName} ${employee.lastName}"
+            return "Employee Added SuccessFully!\n$employee"
         }
-        return employee.getErrorMessage()
+        return employee.getErrorMessage()+". Failed to add employee"
     }
 
     //Remove an employee
     fun deleteEmployee(empId: String): Boolean{
-        //Check whether given employee id exists
-        val employee=employeeExists(empId)
+        val employee=employeeExists(empId)   //Check whether given employee id exists
         if(employee!=null){
             employeeList.remove(employee)
             return true
@@ -67,18 +70,44 @@ class EmployeeManager {
         return employeeList
     }
 
-    fun checkIn(empId: String, checkInDateTime: LocalDateTime): Boolean {
+    fun checkIn(empId: String, checkInDateTime: String): String? {
         if (employeeExists(empId)==null){
-            println("Employee ID not found")
-            return false      //Employee not found with the given id
-        }
-        if (hasAlreadyCheckedIn(empId, checkInDateTime)) {
-            println("Employee has already checked in")
-            return false     //Check whether the employee has already checked in today or not
+            println("Employee ID not found")  //Employee not found with the given id
+            return null
         }
 
-        checkInList.add(Attendance(empId, checkInDateTime))
-        return true
+        val parsedDateTime=parseDateTime(checkInDateTime)
+        if (parsedDateTime == null) {
+          println("Invalid dateTime")
+            return null
+        }
+
+        if (hasAlreadyCheckedIn(empId, parsedDateTime)) {
+            println("Employee has already checked in")
+            return null     //Check whether the employee has already checked in today or not
+        }
+
+        checkInList.add(Attendance(empId, parsedDateTime))
+        val employee: Employee?= getEmployee(empId)
+        val formatter= DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
+        return "Employee Id: $empId Name: ${employee?.firstName} ${employee?.lastName} DateTime: ${parsedDateTime.format(formatter)}"
+    }
+
+    fun parseDateTime(inputDateTime: String): LocalDateTime?{
+        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
+
+        return if (inputDateTime.isEmpty()) {
+            LocalDateTime.now()
+        } else {
+            try {
+                val dateTime = LocalDateTime.parse(inputDateTime, formatter)
+                if (dateTime.isAfter(LocalDateTime.now())) {  //Future date time
+                    null
+                } else dateTime
+            } catch ( e:DateTimeException) {  //Invalid format
+                null
+            }
+        }
     }
 
     fun hasAlreadyCheckedIn(empId: String, inputDateTime: LocalDateTime): Boolean {
@@ -87,12 +116,19 @@ class EmployeeManager {
         }
     }
 
-    fun checkOut(empId: String,checkOutDateTime: LocalDateTime):String?{
+    fun checkOut(empId: String,checkOutDateTime: String): String?{
         if (employeeExists(empId)==null){
             println("Employee ID not found")
             return null      //Employee not found with the given id
         }
-        val attendance: Attendance?= validateCheckOut(empId,checkOutDateTime)
+
+        val parsedDateTime=parseDateTime(checkOutDateTime)
+        if (parsedDateTime == null) {
+            println("Invalid dateTime")
+            return null
+        }
+
+        val attendance: Attendance?= validateCheckOut(empId,parsedDateTime)
         if(attendance== null){
             println("No valid check-in yet")
             return null     //Invalid check-out
@@ -100,8 +136,8 @@ class EmployeeManager {
 
         val formatter= DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")
 
-        val totHrs= Duration.between(attendance.checkInDateTime,checkOutDateTime)
-        attendance.checkOutDateTime=checkOutDateTime
+        val totHrs= Duration.between(attendance.checkInDateTime,parsedDateTime)
+        attendance.checkOutDateTime=parsedDateTime
         attendance.workingHrs=totHrs
         return "EmpId: $empId CheckInTime: ${attendance.checkInDateTime.format(formatter)} " +
                 "CheckOutTime: ${checkOutDateTime.format(formatter)} workingHrs: ${totHrs.toHours()}h ${totHrs.toMinutesPart()}m"
@@ -129,7 +165,20 @@ class EmployeeManager {
         return checkInList.filter { it.checkOutDateTime == null }
     }
 
-    fun getTotalWorkingHrsBetween(startDate: LocalDate, endDate: LocalDate): Map<String, Duration> {
+    fun getTotalWorkingHrsBetween(startingDate: String, endingDate: String): Map<String, Duration>? {
+
+        val startDate = parseDate(startingDate)
+        if(startDate==null){
+            println("Invalid starting date")
+            return null
+        }
+
+        val endDate = parseDate(endingDate)
+        if(endDate==null){
+            println("Invalid ending date")
+            return null
+        }
+
         //Filter attendances between the given dates
         val filteredList = checkInList.filter {
             it.checkOutDateTime != null &&
@@ -146,6 +195,15 @@ class EmployeeManager {
             map[empId] = map.getOrDefault(empId, Duration.ZERO) + duration
         }
         return map
+    }
+
+    fun parseDate(input: String): LocalDate? {
+        val formatter= DateTimeFormatter.ofPattern("dd-MM-yyyy")
+        return try {
+            LocalDate.parse(input, formatter)
+        } catch (e: DateTimeParseException) {
+            null
+        }
     }
 
 
